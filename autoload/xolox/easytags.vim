@@ -484,15 +484,21 @@ endfunction
 
 function! xolox#easytags#get_tagsfile() " {{{2
   let tagsfile = expand(g:easytags_file)
-  if !empty(g:easytags_by_filetype) && !empty(&filetype)
-    let directory = xolox#misc#path#absolute(g:easytags_by_filetype)
-    let tagsfile = xolox#misc#path#merge(directory, &filetype)
-  elseif g:easytags_dynamic_files
+
+  if g:easytags_dynamic_files
     let files = tagfiles()
     if len(files) > 0
       let tagsfile = files[0]
     endif
   endif
+
+  if !empty(g:easytags_by_filetype) && !empty(&filetype)
+    if !g:easytags_dynamic_files || filewritable(tagsfile) != 1
+      let directory = xolox#misc#path#absolute(g:easytags_by_filetype)
+      let tagsfile = xolox#misc#path#merge(directory, &filetype)
+    endif
+  endif
+
   if filereadable(tagsfile) && filewritable(tagsfile) != 1
     let message = "The tags file %s isn't writable!"
     throw printf(message, fnamemodify(tagsfile, ':~'))
